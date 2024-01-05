@@ -17,9 +17,3 @@ variable "location" {
   #   error_message = "The location you provided is not alowed."
   # }
 }
-
-variable "tags" {
-  type        = map(any)
-  nullable    = false
-  description = "The tags to associate the resource we are creating"
-}
