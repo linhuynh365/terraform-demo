@@ -1,0 +1,96 @@
+name: _infra_create
+
+on:
+  workflow_dispatch:
+
+# Special permissions required for OIDC authentication
+permissions:
+  contents: read
+
+env:
+  TERRAFORM_DIRECTORY:
+  
+  TERRAFORM_VERSION:
+
+  MODULE_REPOSITORY:
+
+  MODULE_VERSION:
+
+  TEMPLATE_DIRECTORY:
+
+jobs:
+  create_infrastructure:
+    name: Create infrastructure
+    runs-on: ubuntu-latest
+    env:
+      #this is needed since we are running terraform with read-only permissions
+      ARM_SKIP_PROVIDER_REGISTRATION: true
+      ACTIONS_STEP_DEBUG: true
+  
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+
+        - name: Login to Azure Subscription where the resources should be created.
+          uses: azure/login@v1
+          with:
+            creds: ${{ secrets.WK_TAA_DEVELOPER_PLATFORM_AZURE_CONNECTION }}
+  
+        # - name: my-app-install token
+        #   id: github-app
+        #   uses: getsentry/action-github-app-token@v2
+        #   with:
+        #     app_id: ${{ secrets.DEP_GITHUB_APP_ID }}
+        #     private_key: ${{ secrets.DEP_GITHUB_APP_PVT }}
+  
+        # - name: Configure Github App Key
+        #   id: set_github_token
+        #   shell: bash
+        #   run: |
+        #     git config --add --global url."https://oauth2:$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/"
+        #   env:
+        #     GITHUB_TOKEN: ${{ steps.github-app.outputs.token }}
+
+        - name: Setup Terraform
+          uses: hashicorp/setup-terraform@v2
+          with:
+            terraform_version: ${{ env.TERRAFORM_VERSION }}
+            terraform_wrapper: false
+
+        - name: Initialize Terraform
+          id: init
+          working-directory: ${{ env.TERRAFORM_DIRECTORY }}
+          run: terraform init -backend-config=${{ github.workspace }}/${{ env.TERRAFORM_DIRECTORY }}/backend.conf
+
+        - name: Terraform Validate
+          id: validate
+          working-directory: ${{ env.TERRAFORM_DIRECTORY }}
+          run: terraform validate
+          continue-on-error: false
+
+        - name: Terraform Format
+          id: format
+          working-directory: ${{ env.TERRAFORM_DIRECTORY }}
+          run: terraform fmt -check
+          continue-on-error: false
+
+        - name: Terraform Plan
+          id: plan
+          working-directory: ${{ env.TERRAFORM_DIRECTORY }}
+          shell: bash
+          run: |
+            export exitcode=0
+            terraform plan -detailed-exitcode -no-color -out tfplan -lock=false -var-file=${{ github.workspace }}/${{ env.TERRAFORM_DIRECTORY }}/terraform.tfvars || export exitcode=$?
+            echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
+            if [ $exitcode -eq 1 ]; then
+            echo Terraform Plan Failed!
+            exit 1
+            else
+            exit 0
+            fi
+
+        - name: Terraform Apply
+          id: apply
+          if: github.ref == 'refs/heads/main' && steps.plan.outputs.exitcode == 2
+          working-directory: ${{ env.TERRAFORM_DIRECTORY }}
+          run: terraform apply -auto-approve tfplan

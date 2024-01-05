@@ -1,0 +1,18 @@
+name: _hello_world
+
+on:
+  push:
+    branches:
+      - main
+      - development
+      - feature/*
+
+  workflow_dispatch:
+
+jobs:
+  say_hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say Hello
+        id: hello_step
+        run: echo "hello world"
