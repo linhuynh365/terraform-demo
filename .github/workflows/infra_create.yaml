@@ -2,6 +2,9 @@ name: _infra_create
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 # Special permissions required for OIDC authentication
 permissions:
@@ -68,8 +71,8 @@ jobs:
             exit 0
             fi
 
-        - name: Terraform Apply
-          id: apply
-          if: github.ref == 'refs/heads/main' && steps.plan.outputs.exitcode == 2
-          working-directory: ${{ env.TERRAFORM_DIRECTORY }}
-          run: terraform apply -auto-approve tfplan
+        # - name: Terraform Apply
+        #   id: apply
+        #   if: github.ref == 'refs/heads/main' && steps.plan.outputs.exitcode == 2
+        #   working-directory: ${{ env.TERRAFORM_DIRECTORY }}
+        #   run: terraform apply -auto-approve tfplan
