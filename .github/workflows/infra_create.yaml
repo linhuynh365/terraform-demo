@@ -8,15 +8,9 @@ permissions:
   contents: read
 
 env:
-  TERRAFORM_DIRECTORY:
+  TERRAFORM_DIRECTORY: '${{ github.workspace }}/demo2/platform_resources'
   
-  TERRAFORM_VERSION:
-
-  MODULE_REPOSITORY:
-
-  MODULE_VERSION:
-
-  TEMPLATE_DIRECTORY:
+  TERRAFORM_VERSION: '1.4.6'
 
 jobs:
   create_infrastructure:
@@ -34,22 +28,7 @@ jobs:
         - name: Login to Azure Subscription where the resources should be created.
           uses: azure/login@v1
           with:
-            creds: ${{ secrets.WK_TAA_DEVELOPER_PLATFORM_AZURE_CONNECTION }}
-  
-        # - name: my-app-install token
-        #   id: github-app
-        #   uses: getsentry/action-github-app-token@v2
-        #   with:
-        #     app_id: ${{ secrets.DEP_GITHUB_APP_ID }}
-        #     private_key: ${{ secrets.DEP_GITHUB_APP_PVT }}
-  
-        # - name: Configure Github App Key
-        #   id: set_github_token
-        #   shell: bash
-        #   run: |
-        #     git config --add --global url."https://oauth2:$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/"
-        #   env:
-        #     GITHUB_TOKEN: ${{ steps.github-app.outputs.token }}
+            creds: ${{ secrets.AZURE_CONNECTION }}
 
         - name: Setup Terraform
           uses: hashicorp/setup-terraform@v2

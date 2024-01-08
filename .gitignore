@@ -39,3 +39,7 @@ terraform.rc
 
 # Ignore generated terratest directories
 tests/**/*_terratest/*
+
+# Local files
+az_script.txt
+creds.txt
