@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 env:
-  TERRAFORM_DIRECTORY: '${{ github.workspace }}/demo2/platform_resources'
+  TERRAFORM_DIRECTORY: './demo2/platform_resources'
   
   TERRAFORM_VERSION: '1.4.6'
 
@@ -61,7 +61,7 @@ jobs:
           working-directory: ${{ github.workspace }}
           shell: bash
           run: find -maxdepth 7
-          
+
         - name: Terraform Plan
           id: plan
           working-directory: ${{ env.TERRAFORM_DIRECTORY }}
